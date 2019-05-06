@@ -13,16 +13,18 @@ public class Compiler {
         destinationPath = stringBuilder.toString();
     }
 
-    public void compile(String path) {
+    public void compile(String path) throws Exception {
         //Prepare paths and add them to singleton object
         preparePaths(path);
         Writer.createWriter(destinationPath);
         myScanner = new MyScanner(sourcePath);
-        KeyWords.SymType tmp;
+        Parser parser = new Parser(myScanner);
+        parser.program();
+        /*Symbol tmp;
         do {
             tmp = myScanner.nextSymbol();
-            System.out.print( tmp + " ");
-        } while (tmp!=KeyWords.SymType.ERROR && tmp!=KeyWords.SymType.EOF && tmp!=KeyWords.SymType.UNKNOWN);
+            System.out.print( tmp.getType() + "(" + tmp.getText() + ")  ");
+        } while (tmp.getType()!=KeyWords.SymType.ERROR && tmp.getType()!=KeyWords.SymType.EOF && tmp.getType()!=KeyWords.SymType.UNKNOWN); */
 
         Writer.getInstance().close();
     }

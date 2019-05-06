@@ -35,6 +35,12 @@ public class Writer {
         }
     }
 
+    public void error(String string)
+    {
+        write(string);
+        close();
+    }
+
     public void close()
     {
         try {

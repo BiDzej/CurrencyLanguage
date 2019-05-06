@@ -13,7 +13,7 @@ public class Reader {
     //Cursor position while reading from file
     CursorPosition cp;
 
-    Reader(String sourceFile)
+    public Reader(String sourceFile)
     {
         this.sourceFile = sourceFile;
         try {

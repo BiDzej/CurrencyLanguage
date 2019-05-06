@@ -16,21 +16,16 @@ public class MyScanner {
         nextChar = reader.nextChar();
     }
 
-    public String getLastWord()
-    {
-        return stringBuilder.toString();
-    }
-
-    public KeyWords.SymType nextSymbol()
+    public Symbol nextSymbol()
     {
         do
         {
             //skip all spaces and tabs
-            while(isWhiteSign(nextChar))
+            while(nextChar==' ' || nextChar=='\t' || nextChar=='\n')
                 nextChar = reader.nextChar();
             //if it's file end, return file end
             if(nextChar==-1)
-                return KeyWords.SymType.EOF;
+                return new Symbol(KeyWords.SymType.EOF);
 
             //checking if comments or divide sign
             if(nextChar=='/')
@@ -43,7 +38,7 @@ public class MyScanner {
                     }
                     while (nextChar != '\n');
                 }
-                else return KeyWords.SymType.DIVIDE;
+                else return new Symbol(KeyWords.SymType.MULT_OP, "/");
             }
         } while (isWhiteSign(nextChar) || nextChar=='/');
 
@@ -62,8 +57,8 @@ public class MyScanner {
                 //if second and third letter are not both great letters
                 if(!isGreatLetter(nextChar))
                 {
-                    writer.write("//Error in line: " + cp.line + " at char: " + cp.sign + ". Variable should start with a small letter.");
-                    return KeyWords.SymType.ERROR;
+                    writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Variable should start with a small letter.");
+                    return new Symbol (KeyWords.SymType.ERROR);
                 }
                 stringBuilder.append((char)nextChar);
             }
@@ -72,11 +67,11 @@ public class MyScanner {
             //if there are more signs after that 3 letters error
             if(!isWhiteSign(nextChar))
             {
-                writer.write("//Error in line: " + cp.line + " at char: " + (cp.sign) + ". Currency type should have only 3 great letters.");
-                return KeyWords.SymType.ERROR;
+                writer.error("//[S] Error in line: " + cp.line + " at char: " + (cp.sign) + ". Currency type should have only 3 great letters.");
+                return new Symbol(KeyWords.SymType.ERROR);
             }
             //it's for sure currency name
-            return KeyWords.SymType.CURRENCY_TYPE;
+            return new Symbol(KeyWords.SymType.CURRENCY_TYPE, stringBuilder.toString());
         }
         else if(isSmallLetter(nextChar))
         {
@@ -89,122 +84,105 @@ public class MyScanner {
             //check if the char is space enter or tab
             if(!isWhiteSign(nextChar))
             {
-                writer.write("//Error in line: " + cp.line + " at char: " + cp.sign + ". Variable and function name should contains only letters.");
-                return KeyWords.SymType.ERROR;
+                writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Variable and function name should contains only letters.");
+                return new Symbol(KeyWords.SymType.ERROR);
             }
             //check if it's not longer than 20 letters
             if(stringBuilder.toString().length() > keyWords.MAX_IDENT_LENGTH)
             {
-                writer.write("//Error in line: " + cp.line + " at char: " + cp.sign + ". Variable and function name's length should be <=20 signs.");
-                return KeyWords.SymType.ERROR;
+                writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Variable and function name's length should be <=20 signs.");
+                return new Symbol(KeyWords.SymType.ERROR);
             }
             //it's correct so check if it's any key word or return IDENT, all that stuff makes simple method from KeyWords class
-            return keyWords.getByWord(stringBuilder.toString());
+            return new Symbol(keyWords.getByWord(stringBuilder.toString()), stringBuilder.toString());
+        }
+        else if(nextChar=='-')
+        {
+            nextChar = reader.nextChar();
+            if(isWhiteSign(nextChar))
+                return new Symbol(KeyWords.SymType.ADD_OP, "-");
+
+            if(!isDigit(nextChar))
+            {
+                writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". After - should be digit or white sign.");
+                return new Symbol(KeyWords.SymType.ERROR);
+            }
+            //It's number for sure
+            stringBuilder.setLength(0);
+            stringBuilder.append('-');
+            return floatValue();
         }
         else if(isDigit(nextChar))
         {
-            long tmp = 0;
-            do{
-                tmp = tmp*10 + (nextChar - '0');
-                if(tmp > keyWords.MAX_INT)
-                {
-                    writer.write("//Error in line: " + cp.line + " at char: " + cp.sign + ". Int should be in range <-2147483647, 2147483647>.");
-                    return KeyWords.SymType.ERROR;
-                }
-                nextChar = reader.nextChar();
-            } while (isDigit(nextChar));
-            if(nextChar==' ' || nextChar=='\t' || nextChar=='\n')
-            {
-                stringBuilder.setLength(0);
-                stringBuilder.append(tmp);
-                return KeyWords.SymType.INT_CONST;
-            }
-            //it can be float
-            if(nextChar=='.')
-            {
-                nextChar = reader.nextChar();
-                if(!isDigit(nextChar))
-                {
-                    writer.write("//Error in line: " + cp.line + " at char: " + cp.sign + ". After dot there should be another digit.");
-                    return KeyWords.SymType.ERROR;
-                }
-                stringBuilder.append(".");
-                tmp = 0;
-                do{
-                    tmp = tmp*10 + (nextChar - '0');
-                    if(tmp > keyWords.MAX_INT)
-                    {
-                        writer.write("//Error in line: " + cp.line + " at char: " + cp.sign + ". Int should be in range <-2147483647, 2147483647>.");
-                        return KeyWords.SymType.ERROR;
-                    }
-                    nextChar = reader.nextChar();
-                } while (isDigit(nextChar));
-                if(nextChar==' ' || nextChar=='\t' || nextChar=='\n')
-                {
-                    stringBuilder.append(tmp);
-                    return KeyWords.SymType.FLOAT_CONST;
-                }
-            }
-            writer.write("//Error in line: " + cp.line + " at char: " + cp.sign + ". Number can contain only digits. To end a number add space.");
-            return KeyWords.SymType.ERROR;
+            stringBuilder.setLength(0);
+            return floatValue();
         }
-        KeyWords.SymType result = KeyWords.SymType.UNKNOWN;
+        Symbol result = new Symbol(KeyWords.SymType.UNKNOWN);
         switch (nextChar) {
         //one char operators
-            case '+':   result = KeyWords.SymType.PLUS; break;
+            case '+':   result = new Symbol(KeyWords.SymType.ADD_OP,"+");
+                        break;
 
-            case '-':   result = KeyWords.SymType.MINUS; break;
+            case '-':   result = new Symbol(KeyWords.SymType.ADD_OP,"-");
+                        break;
 
-            case '*':   result = KeyWords.SymType.MULTIPLY; break;
+            case '*':   result = new Symbol(KeyWords.SymType.MULT_OP,"*");
+                        break;
 
-            case '(':   result = KeyWords.SymType.L_ROUND; break;
+            case '(':   result = new Symbol(KeyWords.SymType.L_ROUND,"(");
+                        break;
 
-            case ')':   result = KeyWords.SymType.R_ROUND; break;
+            case ')':   result = new Symbol(KeyWords.SymType.R_ROUND,")");
+                        break;
 
-            case '{':   result = KeyWords.SymType.BEGIN; break;
+            case '{':   result = new Symbol(KeyWords.SymType.BEGIN,"{");
+                        break;
 
-            case '}':   result = KeyWords.SymType.END; break;
+            case '}':   result = new Symbol(KeyWords.SymType.END,"}");
+                        break;
 
-            case ',':   result = KeyWords.SymType.COMMA; break;
+            case ',':   result = new Symbol(KeyWords.SymType.COMMA,",");
+                        break;
 
-            case '!':   result = KeyWords.SymType.NOT_OP; break;
+            case '!':   result = new Symbol(KeyWords.SymType.NOT_OP,"!");
+                        break;
 
-            case ':':   result = KeyWords.SymType.COLON; break;
+            case ':':   result = new Symbol(KeyWords.SymType.COLON,":");
+                        break;
 
-            case ';':  result = KeyWords.SymType.SEMICOLON; break;
+            case ';':   result = new Symbol(KeyWords.SymType.SEMICOLON,";");
+                        break;
 
             //operators that can have more than one operator
             case '|':   nextChar = reader.nextChar();
                         if(nextChar=='|')
-                            result = KeyWords.SymType.OR_OP;
+                            result = new Symbol(KeyWords.SymType.OR_OP,"||");
                         break;
 
             case '&':   nextChar = reader.nextChar();
                         if(nextChar=='&')
-                            result = KeyWords.SymType.AND_OP;
-                        break;
+                            result = new Symbol(KeyWords.SymType.AND_OP,"&&");
+                            break;
 
             case '=':   nextChar = reader.nextChar();
                         if(nextChar=='=')
-                            result = KeyWords.SymType.EQUAL;
+                            result = new Symbol(KeyWords.SymType.REL_OP, "==");
                         else
-                            result = KeyWords.SymType.ASSIGNMENT;
+                            result = new Symbol(KeyWords.SymType.ASSIGNMENT,"=");
                         break;
 
             case '>':   nextChar = reader.nextChar();
                         if(nextChar=='=')
-                            result = KeyWords.SymType.GREATER_EQUAL;
-                        else
-                            result = KeyWords.SymType.GREATER;
+                            result = new Symbol(KeyWords.SymType.REL_OP, ">=");
+                        result = new Symbol(KeyWords.SymType.REL_OP, ">");
                         break;
 
             case '<':   nextChar = reader.nextChar();
                         if(nextChar=='=')
-                            result = KeyWords.SymType.LOWER_EQUAL;
+                            result = new Symbol(KeyWords.SymType.REL_OP,"<=");
                         else if(nextChar=='>')
-                            result = KeyWords.SymType.DIFFERENT;
-                        else
-                            result = KeyWords.SymType.LOWER;
+                            result = new Symbol(KeyWords.SymType.REL_OP,"!=");
+                        else result = new Symbol(KeyWords.SymType.REL_OP,"<");
                         break;
 
             //now string const
@@ -214,18 +192,18 @@ public class MyScanner {
                         {
                             if(stringBuilder.toString().length() >= keyWords.MAX_STRING_LENGTH)
                             {
-                                writer.write("Error in line: " + cp.line + " at char: " + cp.sign + ". Char const can have max " + keyWords.MAX_STRING_LENGTH + " signs.");
-                                return KeyWords.SymType.ERROR;
+                                writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Char const can have max " + keyWords.MAX_STRING_LENGTH + " signs.");
+                                return new Symbol(KeyWords.SymType.ERROR);
                             }
                             stringBuilder.append((char)nextChar);
                             nextChar = reader.nextChar();
                         }
-                        result = KeyWords.SymType.CHAR_CONST;
-                        break;
+                        nextChar = reader.nextChar();
+                        return new Symbol(KeyWords.SymType.CHAR_CONST, stringBuilder.toString());
 
         }
-        if(result == KeyWords.SymType.UNKNOWN)
-            writer.write("Error in line: " + cp.line + " at char: " + cp.sign + ". Unknown symbol.");
+        if(result.getType() == KeyWords.SymType.UNKNOWN)
+            writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Unknown symbol.");
         else
             nextChar = reader.nextChar();
         return result;
@@ -255,6 +233,64 @@ public class MyScanner {
 
     private boolean isWhiteSign(int sign)
     {
-        return (sign==' ' || sign=='\t' || sign=='\n');
+        return (sign==' ' || sign=='\t' || sign=='\n' || sign == -1);
+    }
+
+    public CursorPosition getPosition()
+    {
+        return reader.getPosition();
+    }
+
+    //it checks if it's float or int const value and detects errors
+    private Symbol floatValue()
+    {
+        CursorPosition cp = reader.getPosition();
+        Symbol tmpRes = intValue();
+        if(isWhiteSign(nextChar))
+            return tmpRes;
+
+        if(nextChar!='.')
+        {
+            writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". After int value should be white sign (tab, space or enter).");
+            return new Symbol(KeyWords.SymType.ERROR);
+        }
+
+        stringBuilder.append('.');
+        nextChar = reader.nextChar();
+
+        if(!isDigit(nextChar))
+        {
+            writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". After dot there should be a digit.");
+            return new Symbol(KeyWords.SymType.ERROR);
+        }
+
+        intValue();
+
+        if(!isWhiteSign(nextChar))
+        {
+            writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Number can contain only digits. To end a number add space.");
+            return new Symbol(KeyWords.SymType.ERROR);
+        }
+        return new Symbol(KeyWords.SymType.FLOAT_CONST, stringBuilder.toString());
+    }
+
+    //reads all digits in a row
+    private Symbol intValue()
+    {
+        CursorPosition cp = reader.getPosition();
+        long tmp = 0;
+        do{
+            tmp = tmp*10 + (nextChar - '0');
+            if(tmp > keyWords.MAX_INT)
+            {
+                writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Int should be in range <-2147483647, 2147483647>.");
+                return new Symbol(KeyWords.SymType.ERROR);
+            }
+            nextChar = reader.nextChar();
+        } while (isDigit(nextChar));
+
+        stringBuilder.append(tmp);
+        return new Symbol(KeyWords.SymType.INT_CONST, stringBuilder.toString());
+
     }
 }
