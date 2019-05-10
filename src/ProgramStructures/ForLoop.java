@@ -1,5 +1,7 @@
 package ProgramStructures;
 
+import Compilator.Symbol;
+
 import java.util.LinkedList;
 
 //for loop extends instruction
@@ -7,38 +9,40 @@ public class ForLoop extends Instruction {
 
     //initialized variable in loop
     //variable type is always integer
-    private String variableName;
-    //start value of the variable
-    private int startValue;
+    private LinkedList<Symbol> initialization;
     //condition to reach
-    private int endValue;
+    private Symbol endValue;
     //linked list of instructions beetween begin-end bracets
     private LinkedList<Instruction> instructions;
 
-    public ForLoop(String variableName, int startValue, int endValue)
+    public ForLoop()
     {
         //set type as a for loop
         type = InstructionType.FOR_LOOP;
-        instructions = new LinkedList<>();
-        this.variableName = variableName;
-        this.startValue = startValue;
-        this.endValue = endValue;
     }
 
-    public String getVariableName() {
-        return variableName;
+    public LinkedList<Symbol> getInitialization() {
+        return initialization;
     }
 
-    public int getEndValue() {
+    public void addInitialization(LinkedList<Symbol> initialization) {
+        this.initialization = (LinkedList) initialization.clone();
+    }
+
+    public Symbol getEndValue() {
         return endValue;
     }
 
-    public int getStartValue() {
-        return startValue;
+    public void addEndValue(Symbol endValue) {
+        this.endValue = endValue;
     }
 
     public void addInstruction(Instruction instruction) {
         instructions.add(instruction);
+    }
+
+    public void addInstructions(LinkedList<Instruction> list) {
+        instructions = (LinkedList) list.clone();
     }
 
     public Instruction getNextInstruction() {

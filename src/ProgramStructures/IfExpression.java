@@ -3,19 +3,18 @@ package ProgramStructures;
 import javafx.util.Pair;
 
 import java.util.LinkedList;
-import java.util.concurrent.locks.Condition;
 
 public class IfExpression extends Instruction {
     //if condition
-    Condition condition;
+    LogicExpression condition;
     //if body (instructions)
     private LinkedList<Instruction> instructions;
     //else if list
-    private LinkedList<Pair<Condition, LinkedList<Instruction>>> elif;
+    private LinkedList<Pair<LogicExpression, LinkedList<Instruction>>> elif;
     //else body (instructions)
     private LinkedList<Instruction> elseBody;
 
-    public IfExpression(Condition condition) {
+    public IfExpression(LogicExpression condition) {
         this.condition = condition;
         type = InstructionType.IF;
         elif = new LinkedList<>();
@@ -23,12 +22,16 @@ public class IfExpression extends Instruction {
         instructions = new LinkedList<>();
     }
 
-    public Condition getCondition() {
+    public LogicExpression getCondition() {
         return condition;
     }
 
     public void addInstruction(Instruction instruction) {
         instructions.add(instruction);
+    }
+
+    public void addInstructions(LinkedList<Instruction> list) {
+        instructions = (LinkedList) list.clone();
     }
 
     public Instruction getNextInstruction() {
@@ -37,18 +40,18 @@ public class IfExpression extends Instruction {
         return instructions.removeFirst();
     }
 
-    public void addElseIf(Pair<Condition, LinkedList<Instruction>> elif) {
+    public void addElseIf(Pair<LogicExpression, LinkedList<Instruction>> elif) {
         this.elif.add(elif);
     }
 
-    public Pair<Condition, LinkedList<Instruction>> getNextElseIf() {
+    public Pair<LogicExpression, LinkedList<Instruction>> getNextElseIf() {
         if(elif.isEmpty())
             return null;
         return elif.removeFirst();
     }
 
-    public void addElseInstruction(Instruction instruction) {
-        elseBody.add(instruction);
+    public void addElseInstructions(LinkedList<Instruction> instructions) {
+        this.instructions = (LinkedList) instructions.clone();
     }
 
     public Instruction getNextElseInstruction() {

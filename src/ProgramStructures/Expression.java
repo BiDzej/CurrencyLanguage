@@ -12,6 +12,15 @@ public class Expression extends Instruction {
         expression = new LinkedList<>();
     }
 
+    public Expression(LinkedList<Symbol> list) {
+        type = InstructionType.EXPRESSION;
+        expression = (LinkedList) list.clone();
+    }
+
+    public void addSymbols(LinkedList<Symbol> list) {
+        expression = (LinkedList) list.clone();
+    }
+
     public void addSymbol(Symbol symbol) {
         expression.add(symbol);
     }

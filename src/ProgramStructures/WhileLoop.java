@@ -18,6 +18,10 @@ public class WhileLoop extends Instruction{
         instructions.add(instruction);
     }
 
+    public void addInstructions(LinkedList<Instruction> list) {
+        instructions = (LinkedList) list.clone();
+    }
+
     public Instruction getNextInstruction() {
         if(instructions.isEmpty())
             return null;

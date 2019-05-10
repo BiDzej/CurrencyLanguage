@@ -11,6 +11,10 @@ public class LogicExpression {
         symbols = new LinkedList<>();
     }
 
+    public LogicExpression(LinkedList<Symbol> symbols) {
+        this.symbols = (LinkedList) symbols.clone();
+    }
+
     public void addSymbol(Symbol symbol) {
         symbols.add(symbol);
     }

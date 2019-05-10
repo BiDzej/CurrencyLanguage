@@ -1,7 +1,10 @@
 package Compilator;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import ProgramStructures.*;
+import javafx.util.Pair;
 
 public class Parser {
     List<Symbol> tokens;
@@ -11,6 +14,9 @@ public class Parser {
     int currentLevel = 0;       //Lvl = 0 means global variables.
     VariablesAndFunctions collection;
     ArrayList<String> functionParams;
+    Function main;
+    Program program;
+
 
     public Parser(MyScanner myScanner) throws Exception {
         scanner = myScanner;
@@ -19,6 +25,7 @@ public class Parser {
         collection = new VariablesAndFunctions();
         collection.createVariablesLevel(currentLevel);
         functionParams = new ArrayList<>();
+        main = new Function("main");
     }
 
     private void getNextSymbol() throws Exception {
@@ -41,9 +48,10 @@ public class Parser {
 
 
     //main loop of the parser, checks all the symbols received from scanner
-    public void program() throws Exception {
+    //it returns object Program with all structures and instructions
+    public Program program() throws Exception {
+        program = new Program();
         getNextSymbol();
-
         //while it's not a program end, check if it's instruction block
         //or functionDef
         while(lookAhead.getType() != KeyWords.SymType.EOF)
@@ -53,50 +61,52 @@ public class Parser {
                 functionDef();
             //else it can be instruction block or error occurs
             else
-                instructionBlock();
+                main.addInstruction(instructionBlock());
         }
+        program.addFunction(main);
+        return program;
     }
 
-    private void instructionBlock() throws Exception {
+    private Instruction instructionBlock() throws Exception {
         //checks by first word is it statement if block, while block or for loop
         switch (lookAhead.getType())
         {
             //case if it's if statement
             case IF_WORD:       getNextSymbol();
-                                ifStatement();
-                                break;
+                                return ifStatement();
             //case for it's for loop
             case FOR_WORD:      getNextSymbol();
-                                forExpression();
-                                break;
+                                return forExpression();
             //case while word it's while loop
             case WHILE_WORD:    getNextSymbol();
-                                whileExpression();
-                                break;
+                                return whileExpression();
             //if it's not any of those it can be statement or default
-            default:            statement();
+            default:            Instruction tmp = statement();
                                 if(lookAhead.getType()!= KeyWords.SymType.SEMICOLON)
                                 {
                                     writer.error("//Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". ';' expected.");
                                     throw new Exception("';' expected.");
                                 }
                                 getNextSymbol();
-                                break;
+                                return tmp;
         }
     }
 
-    private void functionCall(Symbol name) throws Exception {
+    private LinkedList<Symbol> functionCall(Symbol name) throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
         //first should be function name
         if(!collection.functionExist(name.getText()))
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Function does not exist.");
             throw new Exception("Function does not exist.");
         }
+        result.add(name);
         //now there should be '('
         if(lookAhead.getType()!= KeyWords.SymType.L_ROUND) {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '(' expected.");
             throw new Exception("')' expected.");
         }
+        result.add(lookAhead);
         //get next symbol
         getNextSymbol();
 
@@ -106,21 +116,24 @@ public class Parser {
         {
             switch (lookAhead.getType()) {
                 case INT_CONST:     params.add("int");
-                    getNextSymbol();
-                    break;
+                                    result.add(lookAhead);
+                                    getNextSymbol();
+                                    break;
                 case FLOAT_CONST:   params.add("float");
-                    getNextSymbol();
-                    break;
+                                    result.add(lookAhead);
+                                    getNextSymbol();
+                                    break;
                 case IDENT:         if(!variableName())
                                     {
                                         writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable does not exist.");
                                         throw new Exception("Variable does not exist.");
                                     }
                                     params.add(collection.getVariableType(lookAhead.getText(), currentLevel));
+                                    result.add(lookAhead);
                                     getNextSymbol();
                                     break;
                 default:            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Unexpected symbol: " + lookAhead.getType() + ".");
-                    throw new Exception("Unexpected symbol.");
+                                    throw new Exception("Unexpected symbol.");
             }
             //now it has to be coma or ')'
             if(lookAhead.getType()!= KeyWords.SymType.R_ROUND && lookAhead.getType()!= KeyWords.SymType.COMMA) {
@@ -129,6 +142,7 @@ public class Parser {
             }
             //if it's comma, next cannot be ')'
             if(lookAhead.getType()== KeyWords.SymType.COMMA) {
+                result.add(lookAhead);
                 getNextSymbol();
                 if(lookAhead.getType()== KeyWords.SymType.R_ROUND) {
                     writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Unexpected ')' after ','.");
@@ -136,6 +150,7 @@ public class Parser {
                 }
             }
         }
+        result.add(lookAhead);
         if(!collection.functionWithParamsExist(name.getText(), params))
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". There is no function with this params list.");
@@ -143,6 +158,7 @@ public class Parser {
         }
         //get next symbol
         getNextSymbol();
+        return result;
     }
 
     //checks if function definition is correct
@@ -162,6 +178,7 @@ public class Parser {
 
         //save the function name
         Symbol name = lookAhead;
+        Function newFunction = new Function(name.getText());
 
         //now we check if there is '('
         getNextSymbol();
@@ -177,7 +194,7 @@ public class Parser {
         getNextSymbol();
         if(lookAhead.getType()!= KeyWords.SymType.R_ROUND)
             //check attribute list
-            attributeList();
+            newFunction.addParams(attributeList());
 
         //now we have attribute list so we can add function
         collection.addFunction(name.getText(), functionParams);
@@ -214,6 +231,7 @@ public class Parser {
             }
 
         //check if it has correct begin and end braces
+        newFunction.setReturnedType(lookAhead);
         getNextSymbol();
 
         //beginEndBraces
@@ -226,9 +244,12 @@ public class Parser {
         //get next symbol
         getNextSymbol();
         //while next symbol is not } check if it's instruction block
+        LinkedList<Instruction> instructions = new LinkedList<>();
         while(lookAhead.getType()!= KeyWords.SymType.END)
-            instructionBlock();
+            instructions.add(instructionBlock());
 
+        newFunction.addInstructions(instructions);
+        program.addFunction(newFunction);
         //decrement current level and destroy it
         collection.deleteVariablesLevel(currentLevel--);
 
@@ -260,19 +281,21 @@ public class Parser {
         }
     }
 
-    private void attributeList() throws Exception {
+    private LinkedList<Pair<Symbol,String>> attributeList() throws Exception {
         //while we have coma check one more time if it's attribute
-        attribute();
+        LinkedList<Pair<Symbol,String>> result = new LinkedList<>();
+        result.add(attribute());
         while (lookAhead.getType()== KeyWords.SymType.COMMA)
         {
             //this symbol is a comma, we need next one
             getNextSymbol();
             //check attribute if it's correct
-            attribute();
+            result.add(attribute());
         }
+        return result;
     }
 
-    private void attribute() throws Exception {
+    private Pair<Symbol, String> attribute() throws Exception {
         //first should be variable type
         Symbol type = lookAhead;
         if(!variableType())
@@ -297,7 +320,9 @@ public class Parser {
         collection.addVariable(lookAhead.getText(), type.getText(), currentLevel);
         functionParams.add(type.getText());
         //get next symbol
+        String name = lookAhead.getText();
         getNextSymbol();
+        return new Pair<Symbol,String>(type,name);
     }
 
     private boolean variableName()
@@ -309,21 +334,23 @@ public class Parser {
         return true;
     }
 
-    private void statement() throws Exception {
+    private Instruction statement() throws Exception {
+        LinkedList <Symbol> list = new LinkedList<>();
         switch (lookAhead.getType())
         {
-            case READ_WORD:     getNextSymbol();
-                                readValue();
+            case READ_WORD:     list.add(lookAhead);
+                                getNextSymbol();
+                                list.add(readValue());
                                 break;
-            case WRITE_WORD:    getNextSymbol();
-                                writeValue();
+            case WRITE_WORD:    list.add(lookAhead);
+                                getNextSymbol();
+                                list.add(writeValue());
                                 break;
             case SET_WORD:      getNextSymbol();
-                                setCourse();
-                                break;
+                                return setCourse();
             //here it can be assignment/functionCall/
             default:            if(variableType())
-                                    assingmentOrAttribute();
+                                    list = assingmentOrAttribute();
                                 //else if it's not an ident throw exception
                                 else if(lookAhead.getType()!= KeyWords.SymType.IDENT) {
                                     writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Unexpected token.");
@@ -335,7 +362,7 @@ public class Parser {
                                     Symbol tmp = lookAhead;
                                     getNextSymbol();
                                     if(lookAhead.getType()== KeyWords.SymType.L_ROUND)
-                                        functionCall(tmp);
+                                        list = functionCall(tmp);
                                     //else it can be only assingment
                                     else {
                                         if(collection.getVariableType(tmp.getText(), currentLevel)==null)
@@ -343,13 +370,17 @@ public class Parser {
                                             writer.error("//[P] Error in line: " + cp.line + " at char: " + cp.sign + ". Unknown variable name: " + tmp.getText() + ".");
                                             throw new Exception("Unknown variable name.");
                                         }
-                                        assignment(tmp);
+                                        list = assignment(tmp);
                                     }
                                 }
         }
+        return new Expression(list);
     }
 
-    private void assingmentOrAttribute() throws Exception {
+    private LinkedList<Symbol> assingmentOrAttribute() throws Exception {
+        LinkedList<Symbol> list = new LinkedList<>();
+        list.add(lookAhead);
+
         Symbol type = lookAhead;
         //get next symbol
         getNextSymbol();
@@ -367,31 +398,34 @@ public class Parser {
         //if does not exist add to collection
         Symbol name = lookAhead;
         collection.addVariable(name.getText(), type.getText(), currentLevel);
-
+        list.add(lookAhead);
         //get next symbol
         getNextSymbol();
         //it can be assignment
         if(lookAhead.getType() == KeyWords.SymType.ASSIGNMENT)
-            assignment(type, name);
+            return assignment(type, name);
         //else it can only be an attribute so everything different than ';' is an error
         else if(lookAhead.getType() != KeyWords.SymType.SEMICOLON)
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". ';' expected.");
             throw new Exception("';' expected.");
         }
+        return list;
     }
 
-    private void readValue() throws Exception {
+    private Symbol readValue() throws Exception {
         //now we should have variable name
         if(!variableName())
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable name expected.");
             throw new Exception("Variable name expected.");
         }
+        Symbol tmp = lookAhead;
         getNextSymbol();
+        return tmp;
     }
 
-    private void writeValue() throws Exception {
+    private Symbol writeValue() throws Exception {
         //now we should have variable name or string const
         if(lookAhead.getType()!= KeyWords.SymType.CHAR_CONST)
             if(!variableName())
@@ -399,10 +433,12 @@ public class Parser {
                 writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable name or char const expected.");
                 throw new Exception("Variable name expected.");
             }
+        Symbol tmp = lookAhead;
         getNextSymbol();
+        return tmp;
     }
 
-    private void setCourse() throws Exception {
+    private SetCourse setCourse() throws Exception {
         //check if it's currency type one of known
         //if it does not exist create it
         if(lookAhead.getType()!= KeyWords.SymType.CURRENCY_TYPE)
@@ -414,7 +450,7 @@ public class Parser {
         if(!collection.doesCurrencyTypeExist(lookAhead.getText()))
             collection.addCurrencyType(lookAhead.getText());
 
-        Symbol tmp = lookAhead;
+        Symbol first = lookAhead;
 
         //get next symbol
         getNextSymbol();
@@ -434,12 +470,13 @@ public class Parser {
         }
         currencyType();
         //check if both currency types are different
-        if(lookAhead.getText().equals(tmp.getText()))
+        if(lookAhead.getText().equals(first.getText()))
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Currencys types has to be different.");
             throw new Exception("The same currency type.");
         }
         //get next symbol
+        Symbol second = lookAhead;
         getNextSymbol();
         //check if it's '=' symbol
         if(lookAhead.getType()!= KeyWords.SymType.ASSIGNMENT)
@@ -454,43 +491,39 @@ public class Parser {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Float const expected.");
             throw new Exception("Float const expected.");
         }
+        Symbol course = lookAhead;
         //get next symbol to allow further checking
         getNextSymbol();
 
+        return new SetCourse(first,second,course);
     }
 
-    private void ifStatement() throws Exception {
-        ifExpression();
+    private IfExpression ifStatement() throws Exception {
+        //first is logic expression
+        IfExpression result = new IfExpression(new LogicExpression(logicExpression()));
+        //next we need begin end braces with instructions
+        result.addInstructions(beginEndBraces());
+
         //now we have first symbol after if expression
         while(lookAhead.getType()== KeyWords.SymType.ELIF_WORD)
         {
             //get next symbol (first after elif key word)
             getNextSymbol();
-            //check elif expression which is the same as if expression
-            ifExpression();
+            //check elif expression which is the same as if expression and add to if object
+            result.addElseIf(new Pair<LogicExpression, LinkedList<Instruction>> (new LogicExpression(logicExpression()), beginEndBraces()));
         }
         //now we have first sign after all elif expressions
         if(lookAhead.getType()== KeyWords.SymType.ELSE_WORD) {
             //get first word after else key word
             getNextSymbol();
             //check else expression
-            elseExpression();
+            result.addElseInstructions(beginEndBraces());
         }
+        return result;
     }
 
-    private void elseExpression() throws Exception {
-        //else expression is simple a begin and end braces
-        beginEndBraces();
-    }
-
-    private void ifExpression() throws Exception {
-        //logic expression
-        logicExpression();
-        //then if body
-        beginEndBraces();
-    }
-
-    private void beginEndBraces() throws Exception {
+    private LinkedList<Instruction> beginEndBraces() throws Exception {
+        LinkedList<Instruction> result = new LinkedList<>();
         if(lookAhead.getType()!= KeyWords.SymType.BEGIN)
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '{' expected.");
@@ -503,67 +536,80 @@ public class Parser {
         getNextSymbol();
         //while next symbol is not } check if it's instruction block
         while(lookAhead.getType()!= KeyWords.SymType.END)
-            instructionBlock();
+            result.add(instructionBlock());
 
         //decrement current level and destroy it
         collection.deleteVariablesLevel(currentLevel--);
 
         //we are sure that next symbol is '}' so we can get next symbol
         getNextSymbol();
+        return result;
     }
 
-    private void logicExpression() throws Exception {
+    private LinkedList<Symbol> logicExpression() throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
         //first has to be '('
         if(lookAhead.getType()!= KeyWords.SymType.L_ROUND) {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '=' expected.");
             throw new Exception("'=' expected.");
         }
+        result.add(lookAhead);
         //get next symbol
         getNextSymbol();
         //now it has to be at least one simpleLogExpression
-        simpleLogExpression();
+        result.addAll(simpleLogExpression());
         //while there are more simple expressions check them
         while(lookAhead.getType()== KeyWords.SymType.OR_OP) {
+            result.add(lookAhead);
             getNextSymbol();
-            simpleLogExpression();
+            result.addAll(simpleLogExpression());
         }
         //at the end there should be ')'
         if(lookAhead.getType()!= KeyWords.SymType.R_ROUND) {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". ')' expected.");
             throw new Exception("')' expected.");
         }
+        result.add(lookAhead);
         //get next symbol after that
         getNextSymbol();
+        return result;
     }
 
-    private void simpleLogExpression() throws Exception {
+    private LinkedList<Symbol> simpleLogExpression() throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
         if(lookAhead.getType()== KeyWords.SymType.L_ROUND) {
+            result.add(lookAhead);
             //get next symbol
             getNextSymbol();
             //check termlog
-            termLog();
+            result.addAll(termLog());
             while(lookAhead.getType()== KeyWords.SymType.AND_OP) {
+                result.add(lookAhead);
                 //get next symbol
                 getNextSymbol();
                 //check termLog
-                termLog();
+                result.addAll(termLog());
             }
             //now there should be ')'
             if(lookAhead.getType()!= KeyWords.SymType.R_ROUND) {
                 writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". ')' expected.");
                 throw new Exception("')' expected.");
             }
+            result.add(lookAhead);
             //get next symbol and end function
             getNextSymbol();
         }
         else
             //else there can be only one termlog nothing more
-            termLog();
+            result.addAll(termLog());
+        return result;
     }
 
-    private void termLog() throws Exception {
+    private LinkedList<Symbol> termLog() throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
         //it can be not expression
         if(lookAhead.getType()== KeyWords.SymType.NOT_OP) {
+            result.add(lookAhead);
             //get next symbol
             getNextSymbol();
             //it has to be '('
@@ -571,23 +617,27 @@ public class Parser {
                 writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '(' expected after '!'.");
                 throw new Exception("'(' expected after '!'.");
             }
+            result.add(lookAhead);
             //get next symbol and check expression
             getNextSymbol();
-            expression();
+            result.addAll(expression());
             //now it has to be ')'
             if(lookAhead.getType()!= KeyWords.SymType.R_ROUND) {
                 writer.error("//Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". ')' expected.");
                 throw new Exception("')' expected.");
             }
+            result.add(lookAhead);
             //get next symbol and return
             getNextSymbol();
         }
         else
             //else it can only be an expression
-            expression();
+            result.addAll(expression());
+        return result;
     }
 
-    private void forExpression() throws Exception {
+    private ForLoop forExpression() throws Exception {
+        ForLoop result = new ForLoop();
         //we are already after key word for
         //it has to be int value!!!
         if(lookAhead.getType()!= KeyWords.SymType.INT_TYPE)
@@ -596,7 +646,7 @@ public class Parser {
             throw new Exception("int type variable required.");
         }
         //check assignment
-        assignment();
+        result.addInitialization(assignment());
 
         //now we are on the first symbol after assignment
         //it has to be 'to' keyword
@@ -616,6 +666,7 @@ public class Parser {
             throw new Exception("int const value expected.");
         }
 
+        result.addEndValue(lookAhead);
         //get next symbol
         getNextSymbol();
 
@@ -628,13 +679,17 @@ public class Parser {
         //get next symbol
         getNextSymbol();
         //now we should have begin end braces
-        beginEndBraces();
+        result.addInstructions(beginEndBraces());
+
+        return result;
     }
 
-    private void newVariable() throws Exception {
+    private LinkedList<Symbol> newVariable() throws Exception {
         //we are on the first symbol now, check if it's a known variable type
+        LinkedList<Symbol> result = new LinkedList<>();
         if( variableType())
         {
+            result.add(lookAhead);
             //we need to take next symbol
             getNextSymbol();
             //it it's a variable name check in database if it's exist
@@ -647,43 +702,54 @@ public class Parser {
             {
                 //else add this variable to
                 collection.addVariable(lookAhead.getText(), tokens.get(tokens.size()-1).getText(), currentLevel);
+                result.add(lookAhead);
             }
         }
+        return result;
     }
 
-    private void assignment(Symbol type, Symbol name) throws Exception {
+    private LinkedList<Symbol> assignment(Symbol type, Symbol name) throws Exception {
         //we have now next symbol after variable name, check if it's '='
         if(lookAhead.getType()!= KeyWords.SymType.ASSIGNMENT)
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '=' expected.");
             throw new Exception("'=' expected.");
         }
+        LinkedList<Symbol> result = new LinkedList<>();
+        result.add(type);
+        result.add(name);
 
         //get next symbol
         getNextSymbol();
         //now it should be simple expression
-        simpleExpression();
+        result.addAll(simpleExpression());
         //we are on the last symbol after expression so do nothing
+        return result;
     }
 
-    private void assignment(Symbol name) throws Exception {
+    private LinkedList<Symbol> assignment(Symbol name) throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
+        result.add(name);
         //we have now next symbol after variable name, check if it's '='
         if(lookAhead.getType()!= KeyWords.SymType.ASSIGNMENT)
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '=' expected.");
             throw new Exception("'=' expected.");
         }
-
+        result.add(lookAhead);
         //get next symbol
         getNextSymbol();
         //now it should be expression
-        expression();
+        result.addAll(expression());
         //we are on the last symbol after expression so do nothing
+        return result;
     }
 
-    private void assignment() throws Exception {
-        if(variableType())
-            newVariable();
+    private LinkedList<Symbol> assignment() throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
+        if(variableType()) {
+            result.addAll(newVariable());
+        }
         else
         {
             if(!variableName())
@@ -691,69 +757,84 @@ public class Parser {
                 writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Unknown variable name: " + lookAhead.getText() + ".");
                 throw new Exception("Unknown variable name.");
             }
+            result.add(lookAhead);
         }
 
         //get next symbol and check if it's '='
+
         getNextSymbol();
         if(lookAhead.getType()!= KeyWords.SymType.ASSIGNMENT)
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '=' expected.");
             throw new Exception("'=' expected.");
         }
-
+        result.add(lookAhead);
         //get next symbol
         getNextSymbol();
         //now it should be simple expression
-        simpleExpression();
+        result.addAll(simpleExpression());
         //we are on the last symbol after expression so do nothing
+        return result;
     }
 
-    private void expression() throws Exception {
-        simpleExpression();
+    private LinkedList<Symbol> expression() throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
+        result.addAll(simpleExpression());
         while(lookAhead.getType()== KeyWords.SymType.REL_OP) {
+            result.add(lookAhead);
             getNextSymbol();
-            simpleExpression();
+            result.addAll(simpleExpression());
         }
+        return result;
     }
 
-    private void simpleExpression() throws Exception {
-        term();
+    private LinkedList<Symbol> simpleExpression() throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
+        result.addAll(term());
         while(lookAhead.getType()== KeyWords.SymType.ADD_OP) {
+            result.add(lookAhead);
             getNextSymbol();
-            term();
+            result.addAll(term());
         }
+        return result;
     }
 
-    private void term() throws Exception {
-        factor();
+    private LinkedList<Symbol> term() throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
+        result.addAll(factor());
         while(lookAhead.getType()== KeyWords.SymType.MULT_OP)
         {
+            result.add(lookAhead);
             getNextSymbol();
-            factor();
+            result.addAll(factor());
         }
+        return result;
     }
 
-    private void factor() throws Exception {
+    private LinkedList<Symbol> factor() throws Exception {
+        LinkedList<Symbol> result = new LinkedList<>();
         if(lookAhead.getType()== KeyWords.SymType.L_ROUND) {
             //get next symbol and check expression
             getNextSymbol();
-            //TODO chyba tak nie powinno być ze expression
-            expression();
+            result.addAll(expression());
             if(lookAhead.getType()!= KeyWords.SymType.R_ROUND) {
                 writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". ')' expected.");
                 throw new Exception("')' expected.");
             }
+            result.add(lookAhead);
             //after checking get next symbol
             getNextSymbol();
         }
         else if(lookAhead.getType()== KeyWords.SymType.FLOAT_CONST) {
             //it's const
             //after checking get next symbol
+            result.add(lookAhead);
             getNextSymbol();
         }
         else if(lookAhead.getType()== KeyWords.SymType.INT_CONST) {
             //it's const
             //after checking get next symbol
+            result.add(lookAhead);
             getNextSymbol();
         }
         else if(lookAhead.getType()== KeyWords.SymType.IDENT) {
@@ -764,7 +845,7 @@ public class Parser {
             //check if it's a function call
             if(lookAhead.getType()== KeyWords.SymType.L_ROUND)
                 //it's function call
-                functionCall(tmp);
+                result.addAll(functionCall(tmp));
             else {
                 //it's variable name
                 if(collection.getVariableType(tmp.getText(), currentLevel)==null)
@@ -772,21 +853,24 @@ public class Parser {
                     writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable name unknown.");
                     throw new Exception("Variable name unknown.");
                 }
+                result.add(lookAhead);
             }
         }
         else {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Unexpected symbol.");
             throw new Exception("Unexpected symbol.");
         }
+        return result;
     }
 
-    private void whileExpression() throws Exception {
+    private WhileLoop whileExpression() throws Exception {
         //we are at first symbol after while keyword
         //so check logic expression
-        logicExpression();
+        WhileLoop result = new WhileLoop (new LogicExpression(logicExpression()));
 
         //we are at first char after logic expression
         //so check begin end braces
-        beginEndBraces();
+        result.addInstructions(beginEndBraces());
+        return result;
     }
 }

@@ -22,8 +22,17 @@ public class Function {
         this.returnedType = returnedType;
     }
 
+    //Add full list of params
+    public void addParams(LinkedList<Pair<Symbol,String>> list) {
+        params = (LinkedList) list.clone();
+    }
+
+    public void addInstructions(LinkedList<Instruction> list) {
+        instructions = (LinkedList) list.clone();
+    }
+
     //add parameter to parameter list
-    public void addParams(Pair<Symbol, String> param) {
+    public void addParam(Pair<Symbol, String> param) {
         params.add(param);
     }
 
