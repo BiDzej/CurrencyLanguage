@@ -1,3 +1,5 @@
+package Compilator;
+
 public class MyScanner {
     //private object reader to read from source file
     private Reader reader;
@@ -93,7 +95,7 @@ public class MyScanner {
                 writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Variable and function name's length should be <=20 signs.");
                 return new Symbol(KeyWords.SymType.ERROR);
             }
-            //it's correct so check if it's any key word or return IDENT, all that stuff makes simple method from KeyWords class
+            //it's correct so check if it's any key word or return IDENT, all that stuff makes simple method from Compilator.KeyWords class
             return new Symbol(keyWords.getByWord(stringBuilder.toString()), stringBuilder.toString());
         }
         else if(nextChar=='-')

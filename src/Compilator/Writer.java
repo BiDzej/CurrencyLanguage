@@ -1,3 +1,5 @@
+package Compilator;
+
 import java.io.*;
 
 public class Writer {

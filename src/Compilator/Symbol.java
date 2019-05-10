@@ -1,3 +1,5 @@
+package Compilator;
+
 public class Symbol {
     private KeyWords.SymType type;
     private String text;

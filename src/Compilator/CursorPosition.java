@@ -1,3 +1,5 @@
+package Compilator;
+
 public class CursorPosition {
     public int line;
     public int sign;

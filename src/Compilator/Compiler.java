@@ -1,3 +1,5 @@
+package Compilator;
+
 public class Compiler {
     String sourcePath;
     String destinationPath;
@@ -20,14 +22,12 @@ public class Compiler {
         myScanner = new MyScanner(sourcePath);
         Parser parser = new Parser(myScanner);
         parser.program();
-        /*Symbol tmp;
+        /*Compilator.Symbol tmp;
         do {
             tmp = myScanner.nextSymbol();
             System.out.print( tmp.getType() + "(" + tmp.getText() + ")  ");
-        } while (tmp.getType()!=KeyWords.SymType.ERROR && tmp.getType()!=KeyWords.SymType.EOF && tmp.getType()!=KeyWords.SymType.UNKNOWN); */
+        } while (tmp.getType()!=Compilator.KeyWords.SymType.ERROR && tmp.getType()!=Compilator.KeyWords.SymType.EOF && tmp.getType()!=Compilator.KeyWords.SymType.UNKNOWN); */
 
         Writer.getInstance().close();
     }
-
-
 }

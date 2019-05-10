@@ -1,6 +1,7 @@
+package Compilator;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Queue;
 
 public class VariablesAndFunctions {
     //hashMap of hashmaps on every deepness LvL
