@@ -22,6 +22,11 @@ public class Function {
         this.returnedType = returnedType;
     }
 
+    //get returned type
+    public Compilator.Symbol getReturnedType() {
+        return returnedType;
+    }
+
     //Add full list of params
     public void addParams(LinkedList<Pair<Symbol,String>> list) {
         params = (LinkedList) list.clone();
@@ -48,12 +53,8 @@ public class Function {
         instructions.add(instruction);
     }
 
-    public Instruction getNextInstruction() {
-        //if list is empty return null
-        if(instructions.isEmpty())
-            return null;
-        //else return first instruction and remove it from the list
-        return instructions.removeFirst();
+    public LinkedList<Instruction> getInstructions() {
+        return instructions;
     }
 
     public String getName() {

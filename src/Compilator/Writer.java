@@ -28,9 +28,11 @@ public class Writer {
         return instance;
     }
 
-    public void write(String string)
+    public void write(String string, int incision)
     {
         try {
+            for(int i = 0; i < incision; ++i)
+                fileWriter.write("\t");
             fileWriter.write(string);
         } catch (IOException e) {
             e.printStackTrace();
@@ -39,7 +41,7 @@ public class Writer {
 
     public void error(String string)
     {
-        write(string);
+        write(string, 0);
         close();
     }
 

@@ -21,13 +21,9 @@ public class Compiler {
         Writer.createWriter(destinationPath);
         myScanner = new MyScanner(sourcePath);
         Parser parser = new Parser(myScanner);
-        parser.program();
-        /*Compilator.Symbol tmp;
-        do {
-            tmp = myScanner.nextSymbol();
-            System.out.print( tmp.getType() + "(" + tmp.getText() + ")  ");
-        } while (tmp.getType()!=Compilator.KeyWords.SymType.ERROR && tmp.getType()!=Compilator.KeyWords.SymType.EOF && tmp.getType()!=Compilator.KeyWords.SymType.UNKNOWN); */
-
+        Generator generator = new Generator(Writer.getInstance());
+        //here the generators start the parser and it's own work, parser is starting lexer
+        generator.generate(parser.program());
         Writer.getInstance().close();
     }
 }

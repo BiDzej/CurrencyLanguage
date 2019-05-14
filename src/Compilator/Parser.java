@@ -1,3 +1,6 @@
+//TODO check all building formules!
+//TODO missing variable names, double or tripple other symbols and no else clause
+//TODO can be other errors
 package Compilator;
 
 import java.util.ArrayList;
@@ -42,8 +45,6 @@ public class Parser {
 
         tokens.add(lookAhead);
         lookAhead = tmp;
-        writer.write(tmp.getText()+"  ");
-        System.out.print(tmp.getType() + "  ");
     }
 
 

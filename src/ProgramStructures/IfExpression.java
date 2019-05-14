@@ -40,6 +40,15 @@ public class IfExpression extends Instruction {
         return instructions.removeFirst();
     }
 
+    public LinkedList<Instruction> getInstructions() {
+        return instructions;
+    }
+
+    public LinkedList<Instruction> getElseInstructions() {
+        return elseBody;
+    }
+
+
     public void addElseIf(Pair<LogicExpression, LinkedList<Instruction>> elif) {
         this.elif.add(elif);
     }

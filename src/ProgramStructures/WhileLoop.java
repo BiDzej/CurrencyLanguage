@@ -28,6 +28,10 @@ public class WhileLoop extends Instruction{
         return instructions.removeFirst();
     }
 
+    public LinkedList<Instruction> getInstructions() {
+        return instructions;
+    }
+
     public LogicExpression getLogicExpression() {
         return logicExpression;
     }

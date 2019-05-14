@@ -50,4 +50,8 @@ public class ForLoop extends Instruction {
             return null;
         return instructions.removeFirst();
     }
+
+    public LinkedList<Instruction> getInstructions() {
+        return instructions;
+    }
 }
