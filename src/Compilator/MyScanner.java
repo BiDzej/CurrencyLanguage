@@ -189,6 +189,7 @@ public class MyScanner {
 
             //now string const
             case '"':   stringBuilder.setLength(0);
+                        stringBuilder.append("\"");
                         nextChar = reader.nextChar();
                         while (nextChar!='"')
                         {
@@ -200,6 +201,7 @@ public class MyScanner {
                             stringBuilder.append((char)nextChar);
                             nextChar = reader.nextChar();
                         }
+                        stringBuilder.append("\"");
                         nextChar = reader.nextChar();
                         return new Symbol(KeyWords.SymType.CHAR_CONST, stringBuilder.toString());
 

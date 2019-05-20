@@ -28,6 +28,7 @@ public class VariablesAndFunctions {
         currenciesTypes.add("USD");
         currenciesTypes.add("GBP");
         currenciesTypes.add("JPY");
+        currenciesTypes.add("RUB");
     }
 
     //returns type or null if does not exist

@@ -34,19 +34,17 @@ public class Generator {
         }
 
         //now generate main
-        //TODO when there is only main, null pointer exception ? :c
         generateMain();
     }
 
-    //TODO add all of needed libraries
     //write all includes which are necessary to let the code work properly
     private void generateIncludes() {
         writer.write("#include <iostream>\n", incision);
-        writer.write("#include \"Currencies.h\"\n", incision);
+        writer.write("#include \"Wallet.h\"\n\n", incision);
     }
 
     //generate in loop all instructions
-    private void generate(LinkedList<Instruction> list) {
+    private void generate(LinkedList<Instruction> list, String funcName) {
         if(list.isEmpty())
             return;
         do {
@@ -56,9 +54,9 @@ public class Generator {
                                     break;
                 case WHILE_LOOP:    generate((WhileLoop)tmp);
                                     break;
-                case IF:            generate((IfExpression)tmp);
+                case IF:            generate((IfExpression)tmp, funcName);
                                     break;
-                case EXPRESSION:    generate((Expression)tmp);
+                case EXPRESSION:    generate((Expression)tmp, funcName);
                                     break;
                 case SET_COURSE:    generate((SetCourse)tmp);
                                     break;
@@ -66,16 +64,41 @@ public class Generator {
         } while (!list.isEmpty());
     }
 
-    //TODO generate for loop
     //generate for loop
     private void generate(ForLoop loop) {
-
+        //for word
+        writer.write("for (", incision);
+        LinkedList<Symbol> initialization = loop.getInitialization();
+        //it's the symbol type
+        writer.write(initialization.removeFirst().getText() + " ", 0);
+        //it's the variable name
+        Symbol variableName = initialization.removeFirst();
+        writer.write(variableName.getText(), 0);
+        while(!initialization.isEmpty()) {
+            writer.write(initialization.removeFirst().getText(), 0);
+        }
+        //end of for loop
+        writer.write("; " + variableName.getText() + " <= " + loop.getEndValue().getText() + "; ++" + variableName.getText() + " ) { \n", 0);
+        ++incision;
+        //generate instructions inside the loop
+        generate(loop.getInstructions(), "");
+        --incision;
+        writer.write("}\n", incision);
     }
 
-    //TODO generate while loop
     //generate while loop
     private void generate(WhileLoop loop) {
-
+        //while word
+        writer.write("while", incision);
+        //generate condition
+        generate(loop.getLogicExpression());
+        writer.write(" {\n", 0);
+        ++incision;
+        //generate instructions
+        generate(loop.getInstructions(), "");
+        //end the loop
+        --incision;
+        writer.write("}\n", incision);
     }
 
     //generate logic expression
@@ -85,11 +108,13 @@ public class Generator {
         while(simpleLog!=null) {
             writer.write(simpleLog.getText(), 0);
             simpleLog = log.getNextSymbol();
+            if(simpleLog!=null)
+                writer.write(" ", 0);
         }
     }
 
     //generate if statement
-    private void generate(IfExpression ifExpr) {
+    private void generate(IfExpression ifExpr, String funcName) {
         writer.write("if ", incision);
         //generate condition
         generate(ifExpr.getCondition());
@@ -98,7 +123,7 @@ public class Generator {
         ++incision;
 
         //generate all instructions
-        generate(ifExpr.getInstructions());
+        generate(ifExpr.getInstructions(), funcName);
         writer.write("}\n", incision);
 
         --incision;
@@ -115,9 +140,9 @@ public class Generator {
             writer.write("else if", incision);
             //generate condition
             generate(tmp.getKey());
-            writer.write(") {\n", 0);
+            writer.write(" {\n", 0);
             ++incision;
-            generate(tmp.getValue());
+            generate(tmp.getValue(), funcName);
             --incision;
             writer.write("}\n", incision);
             tmp = ifExpr.getNextElseIf();
@@ -127,29 +152,68 @@ public class Generator {
         if(!ifExpr.getElseInstructions().isEmpty()) {
             writer.write("else {\n", incision);
             ++incision;
-            generate(ifExpr.getElseInstructions());
+            generate(ifExpr.getElseInstructions(), funcName);
             --incision;
             writer.write("}\n", incision);
         }
     }
 
     //generate expression
-    private void generate(Expression exp) {
+    private void generate(Expression exp, String funcName) {
         Symbol tmp = exp.getNextSymbol();
-        //just to move a cursor in new line, new expression is new line
-        writer.write("", incision);
-        while(tmp!=null) {
-            writer.write(tmp.getText() + " ", 0);
+        //if it's write word
+        if(tmp.getType()== KeyWords.SymType.WRITE_WORD) {
             tmp = exp.getNextSymbol();
+            if(tmp.getText().equals(funcName))
+                tmp.setText(tmp.getText()+"Res");
+            writer.write("std::cout << " + tmp.getText() + " << std::endl;\n", incision);
+            return;
+        }
+        if(tmp.getType()== KeyWords.SymType.READ_WORD) {
+            tmp = exp.getNextSymbol();
+            if(tmp.getText().equals(funcName))
+                tmp.setText(tmp.getText()+"Res");
+            writer.write("std::cin >> " + tmp.getText() + " ;\n", incision);
+            return;
+        }
+
+        if(tmp.getType()== KeyWords.SymType.CURRENCY_TYPE) {
+            Symbol type = tmp;
+            Symbol name = exp.getNextSymbol();
+            writer.write("Wallet " + name.getText() + "(\"" + type.getText() + "\", 0);\n", incision);
+            tmp = exp.getNextSymbol();
+            if(tmp==null)
+                return;
+            if(tmp.getType()== KeyWords.SymType.ASSIGNMENT) {
+                writer.write(name.getText() + " = ",incision);
+                tmp = exp.getNextSymbol();
+            }
+        } else
+            //just to move a cursor in new line, new expression is new line
+            writer.write("", incision);
+
+        while(tmp!=null) {
+            if(tmp.getText().equals(funcName)){
+                Symbol tmp1 = exp.getNextSymbol();
+                if(tmp1.getType()== KeyWords.SymType.L_ROUND)
+                    writer.write(tmp.getText() + " " + tmp1.getText(), 0);
+                else writer.write(tmp.getText() + "Res " + tmp1.getText(), 0);
+            }
+            else
+                writer.write(tmp.getText(), 0);
+            tmp = exp.getNextSymbol();
+            if(tmp!=null)
+                writer.write(" ", 0);
         }
         writer.write(";\n", 0);
     }
 
-    //TODO generate set course
-    //TODO write before it all classes in C++
     //generate set course
     private void generate(SetCourse course) {
-
+        writer.write("CurrenciesLibrary::getInstance().setCourse(\"", incision);
+        writer.write(course.getFirstCurrency().getText() + "\", \"", 0);
+        writer.write(course.getSecondCurrency().getText() + "\", ", 0);
+        writer.write(course.getCourse().getText() + ");\n", 0);
     }
 
     //generate main function
@@ -159,7 +223,7 @@ public class Generator {
         ++incision;
 
         //generate all instructions in main
-        generate(main.getInstructions());
+        generate(main.getInstructions(), "");
 
         //generate function end
         writer.write("return 0;\n", incision);
@@ -186,14 +250,14 @@ public class Generator {
 
         //write the return value
         if(function.getReturnedType().getType()!= KeyWords.SymType.VOID_WORD)
-            writer.write(function.getReturnedType().getText() + " " + function.getName() + ";\n", incision);
+            writer.write(function.getReturnedType().getText() + " " + function.getName() + "Res;\n", incision);
 
         //now generate all instructions
-        generate(function.getInstructions());
+        generate(function.getInstructions(), function.getName());
 
         //end the function
         if(function.getReturnedType().getType()!= KeyWords.SymType.VOID_WORD)
-            writer.write("return " + function.getName() + ";\n", incision);
+            writer.write("return " + function.getName() + "Res;\n", incision);
         --incision;
         writer.write("}\n\n\n", incision);
 

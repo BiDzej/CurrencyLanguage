@@ -60,7 +60,7 @@ public class IfExpression extends Instruction {
     }
 
     public void addElseInstructions(LinkedList<Instruction> instructions) {
-        this.instructions = (LinkedList) instructions.clone();
+        this.elseBody = (LinkedList) instructions.clone();
     }
 
     public Instruction getNextElseInstruction() {

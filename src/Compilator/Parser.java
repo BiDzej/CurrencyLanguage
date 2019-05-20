@@ -1,6 +1,3 @@
-//TODO check all building formules!
-//TODO missing variable names, double or tripple other symbols and no else clause
-//TODO can be other errors
 package Compilator;
 
 import java.util.ArrayList;
@@ -719,6 +716,8 @@ public class Parser {
         LinkedList<Symbol> result = new LinkedList<>();
         result.add(type);
         result.add(name);
+        //add '=' symbol too
+        result.add(lookAhead);
 
         //get next symbol
         getNextSymbol();
@@ -741,7 +740,7 @@ public class Parser {
         //get next symbol
         getNextSymbol();
         //now it should be expression
-        result.addAll(expression());
+        result.addAll(simpleExpression());
         //we are on the last symbol after expression so do nothing
         return result;
     }
@@ -815,6 +814,7 @@ public class Parser {
     private LinkedList<Symbol> factor() throws Exception {
         LinkedList<Symbol> result = new LinkedList<>();
         if(lookAhead.getType()== KeyWords.SymType.L_ROUND) {
+            result.add(lookAhead);
             //get next symbol and check expression
             getNextSymbol();
             result.addAll(expression());
@@ -854,7 +854,7 @@ public class Parser {
                     writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable name unknown.");
                     throw new Exception("Variable name unknown.");
                 }
-                result.add(lookAhead);
+                result.add(tmp);
             }
         }
         else {
