@@ -1,0 +1,10 @@
+//this function checks if statement and comparative operators
+//the result after compilation should be :
+// Equal
+set ABC : EUR = 3.0 ;
+ABC abc = 3.6 ;
+EUR eur = 1.2 ;
+if ( abc < eur ) { write "Smaller" ; }
+elif ( abc > eur ) { write "Greater" ; }
+else { write "Equal" ; }
+ 

@@ -1,0 +1,4 @@
+//trying to set a currency course comparing it with itself.
+//the result should be like:
+//[P] Error in line 4 at char _. Currencies types has to be different.
+set ABC : ABC = 3.0 ;

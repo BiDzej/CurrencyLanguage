@@ -1,0 +1,9 @@
+//instruction starting with '<' sign what is incorrect.
+//the result should be like:
+//[P] Error in line 8 at char _. Unexpected token.
+int n = 2 ;
+function name ( ) : void {
+	int a = 3 ;
+	int b = 4 ;
+	< b ;
+}

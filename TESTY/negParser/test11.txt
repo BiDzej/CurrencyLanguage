@@ -1,0 +1,6 @@
+//create function with a name which already exist in program
+//the result should be like:
+//[P] Error in line 6 at char _. This function anme already exists.
+int n = 2 ;
+function name ( ) : void { int temp = 3 * 2 ;  }
+function name ( int a ) : void { } 

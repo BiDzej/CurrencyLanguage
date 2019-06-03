@@ -1,0 +1,5 @@
+//create a function without params list
+//the result should be like:
+//[P] Error in line 5 at char _. Expected '(' after function name.
+int n = 2 ;
+function name : void { }

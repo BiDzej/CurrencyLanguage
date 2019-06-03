@@ -1,0 +1,5 @@
+//trying to set currency course with a value stored in a variable.
+//the result should be like:
+//[P] Error in line 5 at char _. Float or int const expected.
+int n = 3 ;
+set ABC : USD = n ;

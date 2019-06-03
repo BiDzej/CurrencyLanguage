@@ -1,0 +1,4 @@
+//trying to use currency type which does not exist
+//the result should be like:
+//[P] Error in line 4 at char _. ABC is not a known currency type.
+ABC name = 2 ;

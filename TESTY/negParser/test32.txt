@@ -1,0 +1,5 @@
+//after 'to' in for statement there should be int const.
+//the result should be like:
+//[P] Error in line 5 at char _. int const value expected after 'to' keyword.
+int n = 3 ;
+for int i = 1 to n do { }

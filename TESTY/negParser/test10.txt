@@ -1,0 +1,5 @@
+//define function with a name which is not an ident
+//the result should be like:
+//[P] Error in line 5 at char _. Expected function name (ident).
+int n = 2 ;
+function ABC ( ) : void { int temp = n * 2 ;  }

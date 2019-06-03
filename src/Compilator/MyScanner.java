@@ -92,7 +92,7 @@ public class MyScanner {
             //check if it's not longer than 20 letters
             if(stringBuilder.toString().length() > keyWords.MAX_IDENT_LENGTH)
             {
-                writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Variable and function name's length should be <=20 signs.");
+                writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Variable and function name length should be <=20 signs.");
                 return new Symbol(KeyWords.SymType.ERROR);
             }
             //it's correct so check if it's any key word or return IDENT, all that stuff makes simple method from Compilator.KeyWords class
@@ -207,7 +207,7 @@ public class MyScanner {
 
         }
         if(result.getType() == KeyWords.SymType.UNKNOWN)
-            writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Unknown symbol.");
+            writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". Unknown symbol " + (char)nextChar + ".");
         else
             nextChar = reader.nextChar();
         return result;
@@ -264,7 +264,7 @@ public class MyScanner {
 
         if(!isDigit(nextChar))
         {
-            writer.error("//[S] Error in line: " + cp.line + " at char: " + cp.sign + ". After dot there should be a digit.");
+            writer.error("//[S] Eror in line: " + cp.line + " at char: " + cp.sign + ". After dot there should be a digit.");
             return new Symbol(KeyWords.SymType.ERROR);
         }
 

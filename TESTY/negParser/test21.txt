@@ -1,0 +1,4 @@
+//trying to read a value from the standard input and store in const value
+//the result should be like:
+//[P] Error in line 4 at char _. Variable name expected.
+read 3 ;

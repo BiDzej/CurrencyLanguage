@@ -1,0 +1,16 @@
+//this function checks all simple operations on variables.
+//the result after compilation should be :
+// 20ABC
+// 15ABC
+// 266.2PLN
+// 0USD
+set ABC : USD = 2 ;
+ABC pocketL = 10 * ( 1 + 1 ) ;
+ABC pocketR = ( 5 + pocketL - 100 / 10 ) ;
+PLN resultPLN = pocketL + pocketR ;
+USD resultUSD = pocketL - pocketL ;
+write pocketL ;
+write pocketR ;
+write resultPLN ;
+write resultUSD ;
+ 

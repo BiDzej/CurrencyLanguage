@@ -1,0 +1,5 @@
+//missing begin brace '{' in funciton definition (the same is in if, elif, else, while, for)
+//the result should be like:
+//[P] Error in line 5 at char _. '{' expected.
+int n = 2 ;
+function name ( ) : void int temp = n * 2 ;  }

@@ -1,0 +1,4 @@
+//missing 'do' keyword in for statement.
+//the result should be like:
+//[P] Error in line 4 at char _. 'do' keyword expected.
+for int i = 0 to 10 { }

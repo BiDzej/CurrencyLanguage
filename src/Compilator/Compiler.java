@@ -23,7 +23,7 @@ public class Compiler {
         //copy cpp libraries
         StringBuilder sourceFolder = new StringBuilder(System.getProperty("user.dir"));
         sourceFolder.append("\\src\\CppLibraries\\");
-        StringBuilder destFolder = new StringBuilder(sourcePath.substring(0, sourcePath.lastIndexOf("/")+1));
+        StringBuilder destFolder = new StringBuilder(sourcePath.substring(0, sourcePath.lastIndexOf("\\")+1));
 
         File source = new File(sourceFolder.toString()+"Wallet.h");
         File dest = new File(destFolder.toString()+"Wallet.h");

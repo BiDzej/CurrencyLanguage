@@ -1,0 +1,9 @@
+//instead of ')' there is '}' as the end of function params list.
+//the result should be like:
+//[P] Error in line 9 at char _. Unexpected token: END.
+int n = 2 ;
+function name ( ) : void { 
+	int temp = 3 * 2 ;  
+}
+
+name ( n , }

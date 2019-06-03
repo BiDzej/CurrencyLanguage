@@ -1,0 +1,4 @@
+//missing '=' in set statement
+//the result should be like:
+//[P] Error in line 4 at char _. '=' expected.
+set ABC : USD 2.0 ;

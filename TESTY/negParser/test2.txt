@@ -1,0 +1,6 @@
+//expression without ';' at the end in line no. 5.
+//the result should be like:
+//[P] Error in line: 5 at char: _. ';' expected.
+EUR wallet = 4.5 ;
+PLN pocket = 23
+USD sum = wallet + pocket ;

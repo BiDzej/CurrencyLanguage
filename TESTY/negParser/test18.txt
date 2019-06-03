@@ -1,0 +1,4 @@
+//missing variable name.
+//the result should be like:
+//[P] Error in line 4 at char _. Variable name expected.
+EUR = 5 ;

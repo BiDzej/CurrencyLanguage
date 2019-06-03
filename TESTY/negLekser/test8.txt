@@ -1,0 +1,4 @@
+//trying to create currency object
+//the result should be like:
+//[S] Error in line 4 at char _. After dot there should be a digit.
+float temp = 12.a ;

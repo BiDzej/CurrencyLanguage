@@ -1,0 +1,5 @@
+//create second variable with the same name
+//the result should be like:
+//[P] Error in line 5 at char _. This variable name already exist.
+int n = 2 ;
+float n = 3 ;

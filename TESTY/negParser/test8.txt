@@ -1,0 +1,9 @@
+//in function call after comma there should be an ident or const variable.
+//the result should be like:
+//[P] Error in line 9 at char _. Unexpected ')' after ','.
+int n = 2 ;
+function name ( int n , int a ) : int { 
+	name = n * a ;  
+}
+
+name ( n , ) ;

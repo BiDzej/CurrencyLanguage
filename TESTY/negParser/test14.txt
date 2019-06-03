@@ -1,0 +1,5 @@
+//missing ':' in function definition.
+//the result should be like:
+//[P] Error in line 5 at char _. Expected ':'.
+int n = 2 ;
+function name ( )  void { int temp = 3 * 2 ;  }

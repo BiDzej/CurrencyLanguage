@@ -1,0 +1,4 @@
+//trying to create currency object
+//the result should be like:
+//[S] Error in line _ at char _. Variable and function name length should be <=20 signs.
+int checkthelengthcondition ;

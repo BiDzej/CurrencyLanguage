@@ -1,0 +1,4 @@
+//trying to create currency object
+//the result should be like:
+//[S] Error in line _ at char _. Currency type should have only 3 great letters.
+PLNE name ;

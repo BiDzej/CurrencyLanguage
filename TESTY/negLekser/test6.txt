@@ -1,0 +1,5 @@
+//trying to create currency object
+//the result should be like:
+//[S] Error in line 5 at char _. Char const can have max 200 signs.
+write "IT'S workinG!!1oneone" ;
+write "zvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqzvbsnmjdksolkdimnskqa"

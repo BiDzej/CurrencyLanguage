@@ -1,0 +1,5 @@
+//for loop without initialization
+//the result should be like:
+//[P] Error in line 5 at char _. int variable initialization required after for word.
+int n = 3 ;
+for n to 10 do { }

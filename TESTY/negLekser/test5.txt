@@ -1,0 +1,6 @@
+//trying to create currency object
+//the result should be like:
+//[S] Error in line 6 at char _. After - should be a digit or white sign.
+int variablename = -2 ;
+int variablenametwo = - variablename ;
+int variablenameone = -variablename ;

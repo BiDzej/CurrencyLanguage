@@ -1,0 +1,4 @@
+//trying to create currency object
+//the result should be like:
+//[S] Error in line _ at char _. After int value should be white sign (tab, space or enter).
+int temp = 32a ;

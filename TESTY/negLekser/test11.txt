@@ -1,0 +1,4 @@
+//trying to create currency object
+//the result should be like:
+//[S] Error in line 4 at char _. Int should be in range <-2147483647, 2147483647>.
+int temp = 2389288291 ;

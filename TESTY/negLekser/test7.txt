@@ -1,0 +1,4 @@
+//trying to create currency object
+//the result should be like:
+//[S] Error in line 5 at char _. Unknown symbol %.
+int a = ( 2 + 3 ) % 4 ;

@@ -1,0 +1,5 @@
+//wrong variable type which should be returned (tmp is not a correct variable type)
+//the result should be like:
+//[P] Error in line 5 at char _. tmp is not any of known variable types.
+int n = 2 ;
+function name ( ) : tmp { int temp = n * 2 ;  }

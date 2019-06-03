@@ -1,0 +1,4 @@
+//trying to left logic expression empty
+//the result should be like:
+//[P] Error in line 4 at char _. Unexpected symbol.
+if ( ) { } 

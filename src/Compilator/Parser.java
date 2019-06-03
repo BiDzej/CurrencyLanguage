@@ -11,7 +11,7 @@ public class Parser {
     Symbol lookAhead;
     MyScanner scanner;
     Writer writer;
-    int currentLevel = 0;       //Lvl = 0 means global variables.
+    LinkedList<Integer> currentLevel;   //Lvl = 0 means main variables
     VariablesAndFunctions collection;
     ArrayList<String> functionParams;
     Function main;
@@ -23,7 +23,9 @@ public class Parser {
         writer = Writer.getInstance();
         tokens = new ArrayList<>();
         collection = new VariablesAndFunctions();
-        collection.createVariablesLevel(currentLevel);
+        currentLevel = new LinkedList<>();
+        currentLevel.add(0);
+        collection.createVariablesLevel(currentLevel.getLast());
         functionParams = new ArrayList<>();
         main = new Function("main");
     }
@@ -34,7 +36,7 @@ public class Parser {
         if(tmp.getType()== KeyWords.SymType.ERROR ||
                 tmp.getType()== KeyWords.SymType.UNKNOWN )
             throw new Exception("Some errors found in the code.");
-        if(tmp.getType()== KeyWords.SymType.EOF && currentLevel != 0)
+        if(tmp.getType()== KeyWords.SymType.EOF && currentLevel.getLast() != 0)
         {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Unexpected end of source file.");
             throw new Exception("Unexpected end of file.");
@@ -126,12 +128,12 @@ public class Parser {
                                         writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable does not exist.");
                                         throw new Exception("Variable does not exist.");
                                     }
-                                    params.add(collection.getVariableType(lookAhead.getText(), currentLevel));
+                                    params.add(collection.getVariableType(lookAhead.getText(), currentLevel.getLast()));
                                     result.add(lookAhead);
                                     getNextSymbol();
                                     break;
-                default:            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Unexpected symbol: " + lookAhead.getType() + ".");
-                                    throw new Exception("Unexpected symbol.");
+                default:            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Unexpected token: " + lookAhead.getType() + ".");
+                                    throw new Exception("Unexpected token.");
             }
             //now it has to be coma or ')'
             if(lookAhead.getType()!= KeyWords.SymType.R_ROUND && lookAhead.getType()!= KeyWords.SymType.COMMA) {
@@ -184,9 +186,11 @@ public class Parser {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Expected '(' after function name.");
             throw new Exception("Compilator.Symbol '(' expected after function name.");
         }
-
+//TODO zmiany
         //create new level of variables
-        collection.createVariablesLevel(++currentLevel);
+        currentLevel.add(0);
+        collection.createNewFunctionVariablesLevel();
+        collection.createVariablesLevel(currentLevel.getLast());
 
         //check if we have any list of attributes
         getNextSymbol();
@@ -225,7 +229,7 @@ public class Parser {
             else
             {
                 //we should add variable of this type and name like function
-                collection.addVariable(name.getText(), lookAhead.getText(), currentLevel);
+                collection.addVariable(name.getText(), lookAhead.getText(), currentLevel.getLast());
             }
 
         //check if it has correct begin and end braces
@@ -249,7 +253,9 @@ public class Parser {
         newFunction.addInstructions(instructions);
         program.addFunction(newFunction);
         //decrement current level and destroy it
-        collection.deleteVariablesLevel(currentLevel--);
+        //TODO zmiany
+        collection.deleteLastFunctionVriableLevel();
+        currentLevel.removeLast();
 
         //we are sure that next symbol is '}' so we can get next symbol
         getNextSymbol();
@@ -315,7 +321,7 @@ public class Parser {
             throw new Exception("Variable name already exist.");
         }
         //if it does not exist add to database
-        collection.addVariable(lookAhead.getText(), type.getText(), currentLevel);
+        collection.addVariable(lookAhead.getText(), type.getText(), currentLevel.getLast());
         functionParams.add(type.getText());
         //get next symbol
         String name = lookAhead.getText();
@@ -327,7 +333,7 @@ public class Parser {
     {
         //checks if variable is visible from that point of code
         //if it's visible returns true else returns false
-        if(collection.getVariableType(lookAhead.getText(), currentLevel)==null)
+        if(collection.getVariableType(lookAhead.getText(), currentLevel.getLast())==null)
             return false;
         return true;
     }
@@ -363,7 +369,7 @@ public class Parser {
                                         list = functionCall(tmp);
                                     //else it can be only assingment
                                     else {
-                                        if(collection.getVariableType(tmp.getText(), currentLevel)==null)
+                                        if(collection.getVariableType(tmp.getText(), currentLevel.getLast())==null)
                                         {
                                             writer.error("//[P] Error in line: " + cp.line + " at char: " + cp.sign + ". Unknown variable name: " + tmp.getText() + ".");
                                             throw new Exception("Unknown variable name.");
@@ -395,7 +401,7 @@ public class Parser {
         }
         //if does not exist add to collection
         Symbol name = lookAhead;
-        collection.addVariable(name.getText(), type.getText(), currentLevel);
+        collection.addVariable(name.getText(), type.getText(), currentLevel.getLast());
         list.add(lookAhead);
         //get next symbol
         getNextSymbol();
@@ -470,7 +476,7 @@ public class Parser {
         //check if both currency types are different
         if(lookAhead.getText().equals(first.getText()))
         {
-            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Currencys types has to be different.");
+            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Currencies types has to be different.");
             throw new Exception("The same currency type.");
         }
         //get next symbol
@@ -484,10 +490,10 @@ public class Parser {
         }
         //get next symbol
         getNextSymbol();
-        if(lookAhead.getType()!= KeyWords.SymType.FLOAT_CONST)
+        if(lookAhead.getType()!= KeyWords.SymType.FLOAT_CONST && lookAhead.getType()!= KeyWords.SymType.INT_CONST)
         {
-            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Float const expected.");
-            throw new Exception("Float const expected.");
+            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Float or int const expected.");
+            throw new Exception("Float or int const expected.");
         }
         Symbol course = lookAhead;
         //get next symbol to allow further checking
@@ -527,8 +533,9 @@ public class Parser {
             writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '{' expected.");
             throw new Exception("'{' expected.");
         }
-        //increment current level and create it in collection
-        collection.createVariablesLevel(++currentLevel);
+        //increment current level and create it in collection //TODO
+        currentLevel.set(currentLevel.size()-1, currentLevel.getLast() + 1);
+        collection.createVariablesLevel(currentLevel.getLast());
 
         //get next symbol
         getNextSymbol();
@@ -537,7 +544,8 @@ public class Parser {
             result.add(instructionBlock());
 
         //decrement current level and destroy it
-        collection.deleteVariablesLevel(currentLevel--);
+        collection.deleteVariablesLevel(currentLevel.getLast());
+        currentLevel.set(currentLevel.size()-1, currentLevel.getLast() - 1);
 
         //we are sure that next symbol is '}' so we can get next symbol
         getNextSymbol();
@@ -548,8 +556,8 @@ public class Parser {
         LinkedList<Symbol> result = new LinkedList<>();
         //first has to be '('
         if(lookAhead.getType()!= KeyWords.SymType.L_ROUND) {
-            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '=' expected.");
-            throw new Exception("'=' expected.");
+            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". '(' expected.");
+            throw new Exception("'(' expected.");
         }
         result.add(lookAhead);
         //get next symbol
@@ -640,8 +648,8 @@ public class Parser {
         //it has to be int value!!!
         if(lookAhead.getType()!= KeyWords.SymType.INT_TYPE)
         {
-            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". int type variable required.");
-            throw new Exception("int type variable required.");
+            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". int variable initialization required after for word.");
+            throw new Exception("int variable initialization required.");
         }
         //check assignment
         result.addInitialization(assignment());
@@ -660,7 +668,7 @@ public class Parser {
         //now it should be int const value
         if(lookAhead.getType()!= KeyWords.SymType.INT_CONST)
         {
-            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Int const value expected.");
+            writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". int const value expected after 'to' keyword.");
             throw new Exception("int const value expected.");
         }
 
@@ -693,13 +701,13 @@ public class Parser {
             //it it's a variable name check in database if it's exist
             if(variableName())
             {
-                writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable: " + lookAhead.getText() + " is in use.");
-                throw new Exception("Variable name in use.");
+                writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable: " + lookAhead.getText() + " does already exist.");
+                throw new Exception("Variable name does already exist.");
             }
             else
             {
                 //else add this variable to
-                collection.addVariable(lookAhead.getText(), tokens.get(tokens.size()-1).getText(), currentLevel);
+                collection.addVariable(lookAhead.getText(), tokens.get(tokens.size()-1).getText(), currentLevel.getLast());
                 result.add(lookAhead);
             }
         }
@@ -849,7 +857,7 @@ public class Parser {
                 result.addAll(functionCall(tmp));
             else {
                 //it's variable name
-                if(collection.getVariableType(tmp.getText(), currentLevel)==null)
+                if(collection.getVariableType(tmp.getText(), currentLevel.getLast())==null)
                 {
                     writer.error("//[P] Error in line: " + scanner.getPosition().line + " at char: " + scanner.getPosition().sign + ". Variable name unknown.");
                     throw new Exception("Variable name unknown.");

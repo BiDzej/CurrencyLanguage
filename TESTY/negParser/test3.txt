@@ -1,0 +1,6 @@
+//call function which does not exist.
+//the result should be like:
+//[P] Error in line 6 at char _. Function does not exist.
+int n = 2 ;
+function name ( ) : void { int temp = 3 * 2 ;  }
+namea ( ) ;

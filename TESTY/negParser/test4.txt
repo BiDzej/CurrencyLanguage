@@ -1,0 +1,7 @@
+//call function which exists but with wrong arg list.
+//the result should be like:
+//[P] Error in line 7 at char _. There is no function with this params list.
+int n = 2 ;
+function name ( USD arg ) : EUR { name = arg + 2 ; }
+USD tmp = 3 ;
+name ( tmp , n ) ;

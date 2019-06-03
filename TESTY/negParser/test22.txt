@@ -1,0 +1,4 @@
+//trying to write on the standard output a const value
+//the result should be like:
+//[P] Error in line 4 at char _. Variable name or char const expected.
+write 5 ;

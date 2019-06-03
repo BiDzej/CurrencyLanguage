@@ -1,0 +1,5 @@
+//trying to start an instruction block with '>' which is incorrect.
+//the result should be like:
+//[P] Error in line 5 at char _. Unexpected token.
+int n ;
+> n = 3 + 2 ;

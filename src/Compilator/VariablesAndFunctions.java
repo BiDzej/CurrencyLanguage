@@ -2,12 +2,13 @@ package Compilator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class VariablesAndFunctions {
     //hashMap of hashmaps on every deepness LvL
     //first string in a hidden map is a variable name
     //second string in a hidden map is a variable type
-    private HashMap<Integer, HashMap<String, String>> variables;
+    private LinkedList<HashMap<Integer, HashMap<String, String>>> variables;
 
     //hashmap containing function name and parameters in a queue
     private HashMap<String, ArrayList<String>> functions;
@@ -17,7 +18,10 @@ public class VariablesAndFunctions {
 
     public VariablesAndFunctions()
     {
-        variables = new HashMap<>();
+        //create linked list
+        variables = new LinkedList<>();
+        //push first hash map (variables for main function)
+        variables.add(new HashMap<>());
         functions = new HashMap<>();
         currenciesTypes = new ArrayList<>();
 
@@ -34,10 +38,11 @@ public class VariablesAndFunctions {
     //returns type or null if does not exist
     public String getVariableType(String name, Integer deepness)
     {
+        HashMap<Integer, HashMap<String, String>> functionVariables = variables.getLast();
         //System.out.println("\n\nChecking : " + name + "\n\n");
         for(int i = deepness; i >= 0; --i)
         {
-            HashMap<String, String> tmp = variables.get(i);
+            HashMap<String, String> tmp = functionVariables.get(i);
             if(tmp!=null) {
                 String tmp1 = tmp.get(name);
                 if(tmp1!=null)
@@ -47,24 +52,33 @@ public class VariablesAndFunctions {
         return null;
     }
 
+    public void createNewFunctionVariablesLevel(){
+        variables.add(new HashMap<>());
+    }
+
+    public void deleteLastFunctionVriableLevel() {
+        variables.removeLast();
+    }
+
     public void addVariable(String name, String type, Integer deepness)
     {
-        HashMap<String, String> tmp = variables.get(deepness);
+        HashMap<Integer, HashMap<String, String>> functionVariables = variables.getLast();
+        HashMap<String, String> tmp = functionVariables.get(deepness);
         if(tmp==null)
             throw new NullPointerException("HashMap with this deepness does not exist.");
         tmp.put(name, type);
     }
 
     public void createVariablesLevel(Integer deepness) throws Exception {
-        if(variables.get(deepness)!=null)
+        if(variables.getLast().get(deepness)!=null)
             throw new Exception("Variables HashMap on this level already exists.");
-        variables.put(deepness, new HashMap<String, String>());
+        variables.getLast().put(deepness, new HashMap<String, String>());
     }
 
     public void deleteVariablesLevel(Integer deepness)
     {
-        if(variables.get(deepness)!=null)
-            variables.remove(deepness);
+        if(variables.getLast().get(deepness)!=null)
+            variables.getLast().remove(deepness);
     }
 
     public boolean functionWithParamsExist(String name, ArrayList<String> params)

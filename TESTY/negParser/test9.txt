@@ -1,0 +1,7 @@
+//function call with two params which are not seperated by comma.
+//the result should be like:
+//[P] Error in line 7 at char _. Expected ')' or ','.
+int n = 2 ;
+function name ( int a , int b ) : void { int temp = a * 2 ; }
+
+name ( 2 3 ) ;

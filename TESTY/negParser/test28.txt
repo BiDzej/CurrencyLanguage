@@ -1,0 +1,5 @@
+//logic expression without '(' bracet. The same situation in while, elif
+//the result should be like:
+//[P] Error in line 5 at char _. '(' expected.
+int n = 3 ;
+if n < 3 n = n + 2 ;

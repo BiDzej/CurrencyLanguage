@@ -4,16 +4,17 @@
 
 class CurrenciesLibrary {
 	std::map<std::string, float> currencies;
-	
+
 	//here we have to add all known currencies
+	//CURRENCY : PLN
 	CurrenciesLibrary() {
 		currencies["PLN"] = 1.0f;
-		currencies["EUR"] = 0.232143625f;
-		currencies["CHF"] = 0.26205793f;
-		currencies["USD"] = 0.259245f;
-		currencies["GBP"] = 0.203841814f;
-		currencies["JPY"] = 28.5354981f;
-		currencies["RUB"] = 16.7872175f;
+		currencies["EUR"] = 4.2786f;
+		currencies["CHF"] = 3.8294f;
+		currencies["USD"] = 3.8028f;
+		currencies["GBP"] = 4.8163f;
+		currencies["JPY"] = 0.0351f;
+		currencies["RUB"] = 0.0582f;
 	}
 
 public:
@@ -40,12 +41,12 @@ public:
 
 	//set course NEW : ANY EXISTING
 	void setCourse(std::string idNew, std::string idComp, float course) {
-		currencies[idNew] = currencies[idComp] / course;
+		currencies[idNew] = course * currencies[idComp];
 	}
 
 	//calculate course one to other currency
 	float calculateCourse(std::string first, std::string second) {
-		return currencies[second] / currencies[first];
+		return currencies[first] / currencies[second];
 	}
 
 };

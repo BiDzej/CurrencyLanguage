@@ -1,0 +1,5 @@
+//End of file while any begin bracet is left without end bracet.
+//the result should be like:
+//[P] Error in line 5 at char: 17. Unexpected end of source file.
+USD b = 3 ;
+if ( b < 4 ) { b

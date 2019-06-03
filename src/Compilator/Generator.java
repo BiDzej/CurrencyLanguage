@@ -50,9 +50,9 @@ public class Generator {
         do {
             Instruction tmp = list.removeFirst();
             switch (tmp.getInstructionType()) {
-                case FOR_LOOP:      generate((ForLoop)tmp);
+                case FOR_LOOP:      generate((ForLoop)tmp, funcName);
                                     break;
-                case WHILE_LOOP:    generate((WhileLoop)tmp);
+                case WHILE_LOOP:    generate((WhileLoop)tmp, funcName);
                                     break;
                 case IF:            generate((IfExpression)tmp, funcName);
                                     break;
@@ -65,9 +65,9 @@ public class Generator {
     }
 
     //generate for loop
-    private void generate(ForLoop loop) {
+    private void generate(ForLoop loop, String funcName) {
         //for word
-        writer.write("for (", incision);
+        writer.write("for ( ", incision);
         LinkedList<Symbol> initialization = loop.getInitialization();
         //it's the symbol type
         writer.write(initialization.removeFirst().getText() + " ", 0);
@@ -75,38 +75,62 @@ public class Generator {
         Symbol variableName = initialization.removeFirst();
         writer.write(variableName.getText(), 0);
         while(!initialization.isEmpty()) {
-            writer.write(initialization.removeFirst().getText(), 0);
+            Symbol tmp = initialization.removeFirst();
+            if(!tmp.getText().equals(funcName))
+                writer.write(tmp.getText(), 0);
+            else {
+                Symbol tmp2 = initialization.removeFirst();
+                if(tmp2==null || tmp2.getType()!= KeyWords.SymType.L_ROUND)
+                    writer.write(tmp.getText() + "Res", 0);
+                else
+                    writer.write(tmp.getText(), 0);
+                if(tmp2!=null)
+                    writer.write(" " + tmp2.getText(), 0);
+            }
+            writer.write(" ", 0);
         }
         //end of for loop
         writer.write("; " + variableName.getText() + " <= " + loop.getEndValue().getText() + "; ++" + variableName.getText() + " ) { \n", 0);
         ++incision;
         //generate instructions inside the loop
-        generate(loop.getInstructions(), "");
+        generate(loop.getInstructions(), funcName);
         --incision;
         writer.write("}\n", incision);
     }
 
     //generate while loop
-    private void generate(WhileLoop loop) {
+    private void generate(WhileLoop loop, String funcName) {
         //while word
         writer.write("while", incision);
         //generate condition
-        generate(loop.getLogicExpression());
+        generate(loop.getLogicExpression(), funcName);
         writer.write(" {\n", 0);
         ++incision;
         //generate instructions
-        generate(loop.getInstructions(), "");
+        generate(loop.getInstructions(), funcName);
         //end the loop
         --incision;
         writer.write("}\n", incision);
     }
 
     //generate logic expression
-    private void generate(LogicExpression log) {
+    private void generate(LogicExpression log, String funcName) {
         Symbol simpleLog = log.getNextSymbol();
         //simply rewrite the symbols of log expression
         while(simpleLog!=null) {
-            writer.write(simpleLog.getText(), 0);
+            if(simpleLog.getText().equals(funcName))
+            {
+                Symbol tmp = log.getNextSymbol();
+                if(tmp==null || tmp.getType()!= KeyWords.SymType.L_ROUND) {
+                    writer.write(simpleLog.getText()+"Res", 0);
+                }
+                else
+                    writer.write(tmp.getText(), 0);
+                if(tmp!=null)
+                    writer.write(" " + tmp.getText(), 0);
+            }
+            else
+                writer.write(simpleLog.getText(), 0);
             simpleLog = log.getNextSymbol();
             if(simpleLog!=null)
                 writer.write(" ", 0);
@@ -117,16 +141,14 @@ public class Generator {
     private void generate(IfExpression ifExpr, String funcName) {
         writer.write("if ", incision);
         //generate condition
-        generate(ifExpr.getCondition());
+        generate(ifExpr.getCondition(), funcName);
 
         writer.write(" {\n", 0);
         ++incision;
 
         //generate all instructions
         generate(ifExpr.getInstructions(), funcName);
-        writer.write("}\n", incision);
-
-        --incision;
+        writer.write("}\n", --incision);
 
         //get first else if
         Pair<LogicExpression, LinkedList<Instruction>> tmp = ifExpr.getNextElseIf();
@@ -139,7 +161,7 @@ public class Generator {
             }
             writer.write("else if", incision);
             //generate condition
-            generate(tmp.getKey());
+            generate(tmp.getKey(), funcName);
             writer.write(" {\n", 0);
             ++incision;
             generate(tmp.getValue(), funcName);
@@ -180,19 +202,30 @@ public class Generator {
         if(tmp.getType()== KeyWords.SymType.CURRENCY_TYPE) {
             Symbol type = tmp;
             Symbol name = exp.getNextSymbol();
-            writer.write("Wallet " + name.getText() + "(\"" + type.getText() + "\", 0);\n", incision);
+            writer.write("Wallet " + name.getText() + "(\"" + type.getText() + "\", ", incision);
             tmp = exp.getNextSymbol();
             if(tmp==null)
-                return;
-            if(tmp.getType()== KeyWords.SymType.ASSIGNMENT) {
-                writer.write(name.getText() + " = ",incision);
+                writer.write("0); \n", 0);
+            else if(tmp.getType()== KeyWords.SymType.ASSIGNMENT) {
                 tmp = exp.getNextSymbol();
+                generateRestExpression(exp, funcName, tmp);
+                writer.write(");\n", 0);
             }
-        } else
+        } else {
             //just to move a cursor in new line, new expression is new line
             writer.write("", incision);
+            generateRestExpression(exp, funcName, tmp);
+            writer.write(";\n", 0);
+        }
+    }
 
+    private void generateRestExpression(Expression exp, String funcName, Symbol tmp) {
         while(tmp!=null) {
+            if(tmp.getType()== KeyWords.SymType.FLOAT_CONST) {
+                writer.write(tmp.getText() + "f ", 0);
+                tmp = exp.getNextSymbol();
+                continue;
+            }
             if(tmp.getText().equals(funcName)){
                 Symbol tmp1 = exp.getNextSymbol();
                 if(tmp1.getType()== KeyWords.SymType.L_ROUND)
@@ -205,7 +238,6 @@ public class Generator {
             if(tmp!=null)
                 writer.write(" ", 0);
         }
-        writer.write(";\n", 0);
     }
 
     //generate set course

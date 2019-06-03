@@ -1,0 +1,5 @@
+//trying use a variable in function body (variable n is local for main function).
+//the result should be like:
+//[P] Error in line 5 at char _. Variable does not exist.
+int n = 2 ;
+function name ( ) : void { int temp = n * 2 ;  }

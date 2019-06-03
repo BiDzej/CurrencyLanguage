@@ -1,0 +1,4 @@
+//abc starting with the small letter is an ident, and after set word there should be currency type.
+//the result should be like:
+//[P] Error in line 4 at char _. Currency type expected.
+set abc : cde = 2.0 ;
