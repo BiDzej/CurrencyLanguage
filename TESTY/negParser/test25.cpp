@@ -1,0 +1,1 @@
+//[P] Error in line: 4 at char: 14. Currencies types has to be different.

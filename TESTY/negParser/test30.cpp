@@ -1,0 +1,1 @@
+//[P] Error in line: 5 at char: 6. int variable initialization required after for word.

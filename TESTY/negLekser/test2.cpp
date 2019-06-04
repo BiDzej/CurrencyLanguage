@@ -1,0 +1,1 @@
+//[S] Error in line: 4 at char: 4. Currency type should have only 3 great letters.

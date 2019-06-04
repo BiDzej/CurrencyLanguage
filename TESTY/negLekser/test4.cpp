@@ -1,0 +1,1 @@
+//[S] Error in line: 4 at char: 28. Variable and function name length should be <=20 signs.

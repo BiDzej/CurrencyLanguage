@@ -1,0 +1,1 @@
+//[P] Error in line: 4 at char: 8. Currency type expected.
