@@ -1,0 +1,77 @@
+function menu ( ) : void {
+	write "Choose your option:" ;
+	write " 1. EUR => PLN" ;
+	write " 2. PLN => EUR" ;
+	write " 3. PLN => USD" ;
+	write " 4. USD => PLN" ;
+	write " 5. EUR => USD" ;
+	write " 6. USD => EUR" ;
+	write " 0. close the program" ;
+}
+
+int option ;
+menu ( ) ;
+read option ;
+while ( option <> 0 )
+{
+	if ( ( option > 0 && option < 7 ) )
+	{
+		write "write amount of money: " ;
+		float amount ;
+		read amount ;
+		if ( option == 1 )
+			{
+				EUR tmp = amount ;
+				PLN res = tmp ;
+				write "result: " ;
+				write res ;
+			}
+		elif ( option == 2 )
+			{
+				PLN tmp = amount ;
+				EUR res = tmp ;
+				write "result: " ;
+				write res ;
+			}
+		elif ( option == 3 )
+			{
+				PLN tmp = amount ;
+				USD res = tmp ;
+				write "result: " ;
+				write res ;
+			}
+		elif ( option == 4 )
+			{
+				USD tmp = amount ;
+				PLN res = tmp ;
+				write "result: " ;
+				write res ;
+			}
+		elif ( option == 5 )
+			{
+				EUR tmp = amount ;
+				USD res = tmp ;
+				write "result: " ;
+				write res ;
+			}
+		else 
+			{
+				USD tmp = amount ;
+				EUR res = tmp ;
+				write "result: " ;
+				write res ;
+			}
+		
+	}
+	else 
+	{
+		write "Incorrect option number." ;
+	}
+	
+	write "\n" ;
+	menu ( ) ;
+	read option ;
+} 
+
+
+

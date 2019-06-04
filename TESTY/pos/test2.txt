@@ -1,9 +1,9 @@
 //this function checks if statement and comparative operators
-//the result after compilation should be :
+//the result after compilation should be: Equal
 // Equal
-set ABC : EUR = 3.0 ;
-ABC abc = 3.6 ;
-EUR eur = 1.2 ;
+set ABC : EUR = 2.0 ;
+ABC abc = 1.2 ;
+EUR eur = 2.4 ;
 if ( abc < eur ) { write "Smaller" ; }
 elif ( abc > eur ) { write "Greater" ; }
 else { write "Equal" ; }

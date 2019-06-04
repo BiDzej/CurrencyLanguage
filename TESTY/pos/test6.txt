@@ -1,0 +1,19 @@
+//this function checks more advanced conditions
+//the result after compilation should be: 
+//we can pay in one currency
+
+EUR eur = 10 ; 
+USD usd = 51.5 ;
+PLN ticket = 3.2 ;
+if ( ( eur > 0 && 30 * ticket <= eur ) || ( usd > 0 && 30 * ticket <= usd ) )
+{
+	write "we can pay in one currency" ;
+}
+elif ( eur + usd >= 30 * ticket ) 
+{ 
+	write "we can pay using both currencies" ;
+}
+else 
+{
+	write "no enough money" ;
+}

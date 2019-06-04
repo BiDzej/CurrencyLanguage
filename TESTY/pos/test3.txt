@@ -1,0 +1,12 @@
+//this function checks for loop
+//the result after compilation should be: 
+//25.6734PLN
+//25.6734PLN
+EUR wal = 10 ;
+EUR wall = 10 ;
+USD ticket = 1.5 ;
+PLN res = wal - ( 3 * ticket ) ;
+PLN resu = wall ;
+for int i = 1 to 3 do { resu = resu - ticket ; }
+write res ;
+write resu ;

@@ -1,0 +1,15 @@
+//this function checks while loop
+//the result after compilation should be: 
+//7
+//0.5
+
+float n = -10 ;
+int counter = 0 ;
+while ( n < 0 )
+{
+	counter = counter + 1 ;
+	n = n + 1.5 ;
+}
+
+write counter ;
+write n ; 
